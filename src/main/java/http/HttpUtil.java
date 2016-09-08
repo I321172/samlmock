@@ -5,14 +5,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.List;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 import org.apache.commons.codec.binary.Base64;
-
-import saml.response.utils.Props;
 
 public class HttpUtil
 {
@@ -21,43 +20,29 @@ public class HttpUtil
     private static String         provisioning = "https://qacand.sflab.ondemand.com/provisioning_login?server=qacand";
     private static String         demoSp       = "http://pvgn50862335a:8080/saml2/Login?company=sso008&RelayState=/login?company=sso008";
 
-    public static String getResponseId(String url, boolean needProxy) throws Exception
+    /**
+     * Response Id,JessionId,BigId
+     * 
+     * @param url
+     * @param needProxy
+     * @return
+     * @throws Exception
+     */
+    public static String[] getResponse(String url, boolean needProxy) throws Exception
     {
-        String proxy = null;
-        if (needProxy)
-            proxy = Props.getProperty("proxy");
-        String body = util.fetchWeb(url, proxy).getResponseBody();
-        String samlRequest = body.replaceAll(".*SAMLRequest=(.*?)&.*", "$1");
+        HttpClientBean httpBean = util.fetchWeb(url, needProxy);
+        String samlRequest = httpBean.getResponseBody().replaceAll(".*SAMLRequest=(.*?)&.*", "$1");
         String xml = decode(samlRequest, true);
         String responseId = xml.replaceAll("[\\s\\S]*ID=\"(.*?)\".*", "$1");
-        return responseId;
+        String cookies = httpBean.getLoginCookie();
+        String arr[] = cookies.split(";");
+        return new String[] { responseId, arr[0], arr.length == 2 ? arr[1] : "" };
     }
 
     public static void main(String args[]) throws Exception
     {
-        String body = getResponseId(demoSp, false);
-        System.out.println(body);
-    }
-
-    public static void test() throws IOException, DataFormatException
-    {
-        String inStr = "Hellow World!";
-        byte[] data = inStr.getBytes("UTF-8");
-        byte[] output = new byte[100];
-        // Compresses the data
-        Deflater compresser = new Deflater();
-        compresser.setInput(data);
-        compresser.finish();
-        int bytesAfterdeflate = compresser.deflate(output);
-        System.out.println("Compressed byte number:" + bytesAfterdeflate);
-        // Decompresses the data
-        Inflater decompresser = new Inflater();
-        decompresser.setInput(output, 0, bytesAfterdeflate);
-        byte[] result = new byte[100];
-        int resultLength = decompresser.inflate(result);
-        decompresser.end();
-        String outStr = new String(result, 0, resultLength, "UTF-8");
-        System.out.println("Decompressed data: " + outStr);
+        String[] body = getResponse(demoSp, false);
+        System.out.println(body[0]);
     }
 
     public static byte[] inflateDataBlock(byte[] data)

@@ -245,16 +245,16 @@ public class SimpleIDPServer implements Handler
                 rets = toOK(pack(saml, url));
             } else if (cmd.equalsIgnoreCase("getid"))
             {
-                String responseId;
+                String[] resps;
                 try
                 {
-                    responseId = HttpUtil.getResponseId(arr[0], Boolean.valueOf(arr[1]));
+                    resps = HttpUtil.getResponse(arr[0], false);
                 } catch (Exception e)
                 {
                     // TODO Auto-generated catch block
-                    responseId = e.getMessage();
+                    resps = new String[] { e.getMessage(), "", "" };
                 }
-                rets = toOK(pack(responseId));
+                rets = toOK(pack(resps));
             }
             resp.status = 200;
             if (rets != null)
