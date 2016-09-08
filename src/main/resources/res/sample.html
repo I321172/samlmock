@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"><html><head><meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+<title>Simple Page</title>
+<style type="text/css">
+</style>
+</head>
+<body>
+<h3 style="display:inline">Simple Test Page</h3> <span id="st">&nbsp;</span><br /><br />
+
+<input type=button value=" Demo " onclick="callAPI('TEST');" /><br />
+<input type=text id="SEND" value=" speak " size=120 /><br />
+<textarea id="SSHOW" cols=120 rows=4></textarea>
+
+<script language="javascript" src="./all.js"></script>
+<script language=javascript>
+//////////////////  FUNC ///////////////////
+var _config = [];
+_config["TEST"] = "+SEND";
+
+function info(er,good){
+	$("st").innerHTML = (good ? "<font color=green>" : "<font color=red>") + er + "</font>";
+}
+
+function processAPI(http,callName){
+	$("st").innerHTML = "&nbsp;";
+	if(http.status != 200){
+		info("server error: " + http.status);
+		return;
+	}
+	var arr = unpack(http.responseText);
+	if(arr == null){
+		info("invalid data returned from server: " + http.responseText);
+		return;
+	}
+	if(arr[0] != "OK"){
+		info("Error:" + arr[0] + "," +arr[1]);
+		return
+	}
+	switch(callName){
+	case "TEST":
+		if(arr != null){
+			$("SSHOW").value = "server returned: " + arr[1];
+		}else{
+			info("test failed!");
+		}
+		break;
+	}
+}
+</script>
+</body>
+</html>

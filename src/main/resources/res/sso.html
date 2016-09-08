@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"><html><head><meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+ 
+<title>SF SSO Transfer Page</title>
+<style type="text/css">
+</style>
+</head>
+<body>
+<h3 style="display:inline">SF SSO Transfer Page</h3> <span id="st">&nbsp;</span><br /><br />
+<b>Select A Environment: </b>:<select id="Profile" onchange="callAPI('PRF');"></select><br />
+&nbsp;&nbsp;&nbsp;&nbsp;DB Connection: <input id="DBC" type=text size=40 value="" />
+&nbsp;&nbsp;&nbsp;&nbsp;DB Schema: <input id="DBS" type=text size=6 value="" />
+&nbsp;&nbsp;&nbsp;&nbsp;InstanceID: <input id="COMP" type=text size=10 value="sso007" /><br />
+&nbsp;&nbsp;&nbsp;&nbsp;Site: <input id="URL" type=text size=60 value="http://pvgn50862335a:8080" />
+&nbsp;&nbsp;&nbsp;&nbsp;AudienceUrl: <input id="AURL" type=text size=60 value="https://www.successfactors.com" />
+<!--&nbsp;&nbsp;&nbsp;&nbsp;PartnerKey: <input id="PKEY" type=text size=20 value="" />-->
+<br />
+<br />
+&nbsp;&nbsp;&nbsp;&nbsp;SSOType: <select id="SSOTYPE">
+<option value="SAML1">SAML1</option>
+<option value="SAML2">SAML2</option>
+</select>
+&nbsp;&nbsp;&nbsp;&nbsp;SAML Settings:IDP Issuer: <input type=text size=40 id="IDP" value="http://pvgd50861360a:8080/opensso"/>
+<br />
+<input type=checkbox ID="ENC" />Encrypted (for SAML2), <input type=checkbox ID="SIG" />Assertion Singature (for SAML1/2) <input type=checkbox ID="SIGRESP" />Response Singature (for SAML1/2)<br />
+
+&nbsp;&nbsp;&nbsp;&nbsp;UserName: <input id="USR" type=text size=12 value="feng" /><br />
+&nbsp;&nbsp;&nbsp;&nbsp;Password: <input id="PSW" type=text size=12 value="p" />
+<input type=button value="Log me in" onclick="callAPI('GENSSO');" />&nbsp;&nbsp;&nbsp;&nbsp;<input type=checkbox id="DSPMODE" /> Only Display Response<br/>
+ResponseId: <input id="RespId" type=text size=40 /> <input type=button value="Get" onclick="callAPI('GetId');" />&nbsp;&nbsp;From: <input id="SP" type=text size=80 value="http://pvgn50862335a:8080/saml2/Login?company=sso008&RelayState=/login?company=sso008" />
+<p/>
+<form id="SAML2" action="" method="POST">
+RelayState: <input name="RelayState" type=text size=60 id="RelayState" />
+<input name="SAMLResponse" type=hidden id="SAMLResponse" />
+<input name="company" type=hidden id="COMPID" />
+</form>
+<form id="SAML1" action="" method="POST">
+TARGET: <input name="TARGET" type=text size=12 id="TARGET" />
+<input name="SAMLResponse" type=hidden id="SAMLResponse1" />
+<input name="company" type=hidden id="COMPID1" />
+</form>
+<textarea id="SSHOW" cols=120 rows=40></textarea>
+<script language="javascript" src="/html/all.js"></script>
+<script language=javascript>
+//////////////////  FUNC ///////////////////
+var _config = [];
+_config["PRF"] = "+Profile";
+_config["GENSSO"] = "+URL,+SSOTYPE,+ENC,+SIG,+COMP,+USR,+PSW,+IDP,+SIGRESP,+DSPMODE,AURL,RespId";
+_config["GetId"] = "+SP";
+function info(er,good){
+	$("st").innerHTML = (good ? "<font color=green>" : "<font color=red>") + er + "</font>";
+}
+
+function processAPI(http,callName){
+	$("st").innerHTML = "&nbsp;";
+	if(http.status != 200){
+		info("server error: " + http.status);
+		return;
+	}
+	var arr = unpack(http.responseText);
+	if(arr == null){
+		info("invalid data returned from server: " + http.responseText);
+		return;
+	}
+	if(arr[0] != "OK"){
+		info("Error:" + arr[0] + "," +arr[1]);
+		return
+	}
+	arr = unpack(arr[1]);
+	switch(callName){
+	case "GENSSO":
+		if(arr != null){
+			if($("SSOTYPE").value == "PASSWORD" || $("SSOTYPE").value == "3DES"){
+				if($("DSPMODE").checked)$("SSHOW").value = "Redirect:\r\n" + arr[0]
+				else window.location.href = arr[0] + ($("RelayState").value.length > 0 ? "&referer=" + encodeURIComponent($("RelayState").value) : "");
+			}else if($("SSOTYPE").value == "SAML1"){
+				if($("DSPMODE").checked)$("SSHOW").value = "Url:"+arr[1]+"\r\n\r\nResponse:\r\n" + arr[0];
+				else{
+					$("SAMLResponse1").value = arr[0];
+					if($("TARGET").value.length < 1)
+						$("TARGET").value = getParameterFromUrl("TARGET") ? getParameterFromUrl("TARGET") : "/sf/home";
+					$("SAML1").action = arr[1]; // 
+					$("COMPID1").value = $("COMP").value;
+					$("SAML1").submit();
+				}
+			}else{
+				if($("DSPMODE").checked)$("SSHOW").value = "Url:"+arr[1]+"\r\n\r\nResponse:\r\n" + arr[0];
+				else{
+					$("SAMLResponse").value = arr[0];
+					if($("RelayState").value.length < 1)
+						$("RelayState").value = getParameterFromUrl("RelayState") ? getParameterFromUrl("RelayState") : "/sf/home";
+					$("SAML2").action = arr[1]; // 
+					$("COMPID").value = $("COMP").value;
+					$("SAML2").submit();
+				}
+			}
+		}else{
+			info("generate sso login info failed!");
+		}
+		break;
+	case "PRF":
+		if(arr != null){
+			$("IDP").value = arr[10];
+			$("URL").value = arr[9];
+			$("COMP").value = arr[1];
+			$("USR").value = arr[2];
+			//$("PKEY").value = arr[5];
+			$("DBC").value = arr[6];
+			$("DBS").value = arr[7];
+		}
+		break;
+	case "ENV":
+		if(arr != null){
+			var ev = $("Profile");
+			ev.options.length = arr.length + 1;
+			ev.options[0].innerHTML = "Select Environment";
+			ev.options[0].value = "";
+			for(var i = 0; i < arr.length;i++){
+				ev.options[i+1].innerHTML = arr[i];
+				ev.options[i+1].value = arr[i];
+			}
+		}
+		callAPI("SFN");
+		break;
+	case "GetId":
+	    $("RespId").value=arr[0];
+	    break;
+	}
+}
+<!--callAPI("ENV");->
+</script>
+</body>
+</html>
