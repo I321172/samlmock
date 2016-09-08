@@ -12,6 +12,8 @@ import java.util.zip.InflaterInputStream;
 
 import org.apache.commons.codec.binary.Base64;
 
+import saml.response.utils.Props;
+
 public class HttpUtil
 {
     private static HttpClientUtil util         = new HttpClientUtil();
@@ -21,7 +23,10 @@ public class HttpUtil
 
     public static String getResponseId(String url, boolean needProxy) throws Exception
     {
-        String body = util.fetchWeb(url, needProxy).getResponseBody();
+        String proxy = null;
+        if (needProxy)
+            proxy = Props.getProperty("proxy");
+        String body = util.fetchWeb(url, proxy).getResponseBody();
         String samlRequest = body.replaceAll(".*SAMLRequest=(.*?)&.*", "$1");
         String xml = decode(samlRequest, true);
         String responseId = xml.replaceAll("[\\s\\S]*ID=\"(.*?)\".*", "$1");

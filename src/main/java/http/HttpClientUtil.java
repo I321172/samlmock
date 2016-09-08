@@ -45,7 +45,7 @@ public class HttpClientUtil
 
     public HttpClientBean fetchWeb(HttpClientBean httpClientBean, String customProxy) throws Exception
     {
-        return fetchWeb(httpClientBean, true, customProxy, true);
+        return fetchWeb(httpClientBean, customProxy != null, customProxy, true);
     }
 
     /**

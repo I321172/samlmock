@@ -215,7 +215,6 @@ public class SimpleIDPServer implements Handler
         resp.headers.put("Content-Type", "text/html; charset=utf-8");
         if (resp.url.equalsIgnoreCase("/html/service"))
         {
-
             // handle the api
             String[] arr = unpack(resp.req_data);
             String[] rets = null;
@@ -249,7 +248,7 @@ public class SimpleIDPServer implements Handler
                 String responseId;
                 try
                 {
-                    responseId = HttpUtil.getResponseId(arr[0], false);
+                    responseId = HttpUtil.getResponseId(arr[0], Boolean.valueOf(arr[1]));
                 } catch (Exception e)
                 {
                     // TODO Auto-generated catch block

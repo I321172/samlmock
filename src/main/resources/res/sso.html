@@ -26,7 +26,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;UserName: <input id="USR" type=text size=12 value="feng" /><br />
 &nbsp;&nbsp;&nbsp;&nbsp;Password: <input id="PSW" type=text size=12 value="p" />
 <input type=button value="Log me in" onclick="callAPI('GENSSO');" />&nbsp;&nbsp;&nbsp;&nbsp;<input type=checkbox id="DSPMODE" /> Only Display Response<br/>
-ResponseId: <input id="RespId" type=text size=40 /> <input type=button value="Get" onclick="callAPI('GetId');" />&nbsp;&nbsp;From: <input id="SP" type=text size=80 value="http://pvgn50862335a:8080/saml2/Login?company=sso008&RelayState=/login?company=sso008" />
+ResponseId: <input id="RespId" type=text size=40 /> <input type=button value="Get" onclick="callAPI('GetId');" />&nbsp;&nbsp;From: <input id="SP" type=text size=80 value="http://pvgn50862335a:8080/saml2/Login?company=sso008&RelayState=/login?company=sso008" /><input type=checkbox id="PROXY" /> Need Proxy<br/>
 <p/>
 <form id="SAML2" action="" method="POST">
 RelayState: <input name="RelayState" type=text size=60 id="RelayState" />
@@ -45,7 +45,7 @@ TARGET: <input name="TARGET" type=text size=12 id="TARGET" />
 var _config = [];
 _config["PRF"] = "+Profile";
 _config["GENSSO"] = "+URL,+SSOTYPE,+ENC,+SIG,+COMP,+USR,+PSW,+IDP,+SIGRESP,+DSPMODE,AURL,RespId";
-_config["GetId"] = "+SP";
+_config["GetId"] = "+SP,PROXY";
 function info(er,good){
 	$("st").innerHTML = (good ? "<font color=green>" : "<font color=red>") + er + "</font>";
 }

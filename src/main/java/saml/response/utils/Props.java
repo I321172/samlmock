@@ -15,6 +15,7 @@ public class Props
         try
         {
             p.load(Props.class.getResourceAsStream("/properties/keystore.properties"));
+            p.load(Props.class.getResourceAsStream("/properties/app.properties"));
         } catch (IOException e)
         {
             // TODO Auto-generated catch block
