@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -183,6 +184,7 @@ public class MockServer implements HttpHandler{
     private synchronized String processHeaders(Headers hdrs, int seq,String reqUrl){
         if(seq != rseq)return null;
         rheaders = new LinkedHashMap<String,String>();
+        rheaders.put("Now", new Date().toString());
         for(String key : hdrs.keySet()){
             if("true".equalsIgnoreCase((String)settings.get("h-" + key)) || "true".equalsIgnoreCase((String)settings.get("h-*"))){
                 String h = "";
@@ -200,7 +202,7 @@ public class MockServer implements HttpHandler{
     private synchronized String processContent(String content, int seq){
         //println "expect seq: " + rseq + ", seq:"+ seq
         if(seq != rseq)return null;
-        return rcontent = content;
+        return rcontent = content+"&now="+new Date().toString();
     }
     
     public void handle(HttpExchange exchange) throws IOException{
@@ -360,6 +362,7 @@ public class MockServer implements HttpHandler{
         server.createContext("/", this);
         server.setExecutor(threadPool = Executors.newCachedThreadPool());
         server.start();
+        System.out.println("Start Server with port: "+port);
     }
     
     public void stop(){
