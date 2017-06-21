@@ -3,8 +3,13 @@ package http;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
+import javax.net.ssl.SSLContext;
+
+import org.apache.commons.ssl.HostnameVerifier;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -15,9 +20,11 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 
 public class HttpClientUtil
@@ -69,7 +76,7 @@ public class HttpClientUtil
             throw new Exception("Must specify Url! ");
         }
 
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpClient httpClient = getCloseableHttpClient();
         RequestConfig httpConfig = getRequestConfig(isNeedProxy, customProxy, isDisableRedirect);
         HttpRequestBase method = null;
         switch (httpClientBean.getMethod())
@@ -113,6 +120,24 @@ public class HttpClientUtil
             e.printStackTrace();
         }
         return httpClientBean;
+    }
+
+    public CloseableHttpClient getCloseableHttpClient()
+    {
+        SSLContext sslContext = null;
+        try
+        {
+            sslContext = SSLContexts.custom().build();
+        } catch (KeyManagementException | NoSuchAlgorithmException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext,
+                new String[] { "TLSv1.1", "TLSv1.2" }, null, HostnameVerifier.ALLOW_ALL);
+
+        CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLSocketFactory(sslSocketFactory).build();
+        return httpClient;
     }
 
     private void addHeader(HttpRequestBase method, HttpClientBean httpBean)
